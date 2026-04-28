@@ -1,6 +1,8 @@
 package vn.homthugopy.suggestion.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -69,9 +71,21 @@ public class SuggestionService {
 		newSuggestion.setSuggestAt(LocalDateTime.now());
 		newSuggestion.setStatus("PENDING"); // trạng thái ban đầu là Đang chờ xử lý
 		
-		// Tự động sinh mã tra cứu (VD: 6 ký tự đầu của UUID)
-		String generatedCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
-		newSuggestion.setTrackingCode("GY-" + generatedCode);
+		// Tự động sinh mã tra cứu theo ngày tháng (VD: 280426A)
+		LocalDate today = LocalDate.now();
+		String datePrefix = today.format(DateTimeFormatter.ofPattern("ddMMyy"));
+		long countToday = this.suggestionRepository.countBySuggestAtAfter(today.atStartOfDay());
+		
+		// Chuyển đổi countToday thành chữ cái (0 -> A, 25 -> Z, 26 -> AA...)
+		String suffix = "";
+		long num = countToday;
+		do {
+			long remainder = num % 26;
+			suffix = (char) ('A' + remainder) + suffix;
+			num = (num / 26) - 1;
+		} while (num >= 0);
+		
+		newSuggestion.setTrackingCode(datePrefix + suffix);
 		
 		// Lưu xuống DB
 		Suggestion savedEntity = this.suggestionRepository.save(newSuggestion);
