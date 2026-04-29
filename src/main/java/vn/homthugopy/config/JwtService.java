@@ -17,8 +17,8 @@ public class JwtService {
 	@Value("${jwt.secret:MySuperSecretKeyForTrungDoan4!@#}")
 	private String secretKey;
 
-	// Thời gian sống của token: 24 tiếng
-	private static final long EXPIRATION_TIME = 86400000;
+	// Thời gian sống của token: 5 phút
+	private static final long EXPIRATION_TIME = 300000;
 
 	// Tạo Token từ thông tin User
 	public String generateToken(UserDetails userDetails) {
