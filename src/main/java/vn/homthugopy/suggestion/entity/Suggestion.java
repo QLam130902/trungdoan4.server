@@ -28,8 +28,14 @@ public class Suggestion {
 	// Tên người góp ý (ẩn danh)
 	private String suggestedBy;
 
-	// Cán bộ xử lý
+	// Cán bộ xử lý (Tên hiển thị)
 	private String handledBy;
+	
+	// ID của cán bộ xử lý
+	private Long handlerId;
+	
+	// ID của cán bộ được phân công (Dự phòng cho tính năng sau này)
+	private Long assignedToId;
 
 	// Nội dung phản hồi
 	@Column(columnDefinition = "TEXT")
@@ -86,6 +92,22 @@ public class Suggestion {
 
 	public void setHandledBy(String handledBy) {
 		this.handledBy = handledBy;
+	}
+
+	public Long getHandlerId() {
+		return handlerId;
+	}
+
+	public void setHandlerId(Long handlerId) {
+		this.handlerId = handlerId;
+	}
+
+	public Long getAssignedToId() {
+		return assignedToId;
+	}
+
+	public void setAssignedToId(Long assignedToId) {
+		this.assignedToId = assignedToId;
 	}
 
 	public String getResponse() {

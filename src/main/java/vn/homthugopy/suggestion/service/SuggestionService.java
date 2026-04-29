@@ -15,14 +15,19 @@ import vn.homthugopy.suggestion.dto.SuggestionRequestDTO;
 import vn.homthugopy.suggestion.dto.SuggestionResponseDTO;
 import vn.homthugopy.suggestion.entity.Suggestion;
 import vn.homthugopy.suggestion.repository.SuggestionRepository;
+import vn.homthugopy.user.entity.User;
+import vn.homthugopy.user.repository.UserRepository;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @Service
 public class SuggestionService {
 
 	private final SuggestionRepository suggestionRepository;
+	private final UserRepository userRepository;
 
-	public SuggestionService(SuggestionRepository suggestionRepository) {
+	public SuggestionService(SuggestionRepository suggestionRepository, UserRepository userRepository) {
 		this.suggestionRepository = suggestionRepository;
+		this.userRepository = userRepository;
 	}
 
 	// Chuyển Entity sang DTO
@@ -102,6 +107,16 @@ public class SuggestionService {
 			s.setResponse(reqDTO.getResponse());
 			s.setStatus("RESOLVED");
 			s.setHandledAt(LocalDateTime.now());
+			
+			// Lấy thông tin cán bộ đang đăng nhập từ SecurityContext
+			String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+			Optional<User> currentUserOpt = userRepository.findByUsername(currentUsername);
+			if (currentUserOpt.isPresent()) {
+				User currentUser = currentUserOpt.get();
+				s.setHandlerId(currentUser.getId());
+				s.setHandledBy(currentUser.getRank() + " " + currentUser.getFullName());
+			}
+			
 			Suggestion saved = this.suggestionRepository.save(s);
 			return mapToDTO(saved);
 		}
