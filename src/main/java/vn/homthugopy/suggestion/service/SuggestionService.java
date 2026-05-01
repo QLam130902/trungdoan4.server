@@ -42,6 +42,15 @@ public class SuggestionService {
 		dto.setSuggestAt(entity.getSuggestAt());
 		dto.setHandledAt(entity.getHandledAt());
 		dto.setStatus(entity.getStatus());
+		dto.setContactPhone(entity.getContactPhone());
+
+		// Tra cứu SĐT cán bộ xử lý nếu đã có người xử lý
+		if (entity.getHandlerId() != null) {
+			userRepository.findById(entity.getHandlerId()).ifPresent(handler -> {
+				dto.setHandlerPhone(handler.getPhone());
+			});
+		}
+
 		return dto;
 	}
 
@@ -91,6 +100,15 @@ public class SuggestionService {
 		} while (num >= 0);
 		
 		newSuggestion.setTrackingCode(datePrefix + suffix);
+		newSuggestion.setContactPhone(requestDTO.getContactPhone()); // Lưu SĐT liên hệ nếu có
+		
+		// Nếu người dùng muốn được liên hệ, tự động gán cán bộ mặc định (tuannvt) để tra cứu SĐT
+		if (requestDTO.getContactPhone() != null && !requestDTO.getContactPhone().isBlank()) {
+			userRepository.findByUsername("tuannvt").ifPresent(officer -> {
+				newSuggestion.setHandlerId(officer.getId());
+				newSuggestion.setHandledBy(officer.getRank() + " " + officer.getFullName());
+			});
+		}
 		
 		// Lưu xuống DB
 		Suggestion savedEntity = this.suggestionRepository.save(newSuggestion);

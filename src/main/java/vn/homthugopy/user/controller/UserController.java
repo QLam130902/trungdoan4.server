@@ -51,7 +51,8 @@ public class UserController {
 		user.setFullName(request.getFullName());
 		user.setRank(request.getRank());
 		user.setPosition(request.getPosition());
-		user.setRole(request.getRole()); // ROLE_ADMIN hoặc ROLE_OFFICER
+		user.setRole(request.getRole());
+		user.setPhone(request.getPhone()); // Số điện thoại liên hệ
 
 		User savedUser = userRepository.save(user);
 		return ResponseEntity.ok(new UserResponseDTO(savedUser));
@@ -68,6 +69,7 @@ public class UserController {
 			user.setRank(request.getRank());
 			user.setPosition(request.getPosition());
 			user.setRole(request.getRole());
+			user.setPhone(request.getPhone());
 			
 			User updatedUser = userRepository.save(user);
 			return ResponseEntity.ok(new UserResponseDTO(updatedUser));

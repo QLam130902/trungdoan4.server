@@ -29,6 +29,8 @@ public class User {
 	
 	private String position; // Chức vụ
 	
+	private String phone; // Số điện thoại liên hệ
+	
 	@Column(nullable = false)
 	private String role; // ROLE_ADMIN, ROLE_OFFICER
 
@@ -89,6 +91,14 @@ public class User {
 
 	public void setRole(String role) {
 		this.role = role;
+	}
+
+	public String getPhone() {
+		return phone;
+	}
+
+	public void setPhone(String phone) {
+		this.phone = phone;
 	}
 
 }

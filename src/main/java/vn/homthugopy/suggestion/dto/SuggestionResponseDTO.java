@@ -13,6 +13,8 @@ public class SuggestionResponseDTO {
 	private LocalDateTime suggestAt;
 	private LocalDateTime handledAt;
 	private String status;
+	private String contactPhone; // SĐT người gửi muốn được liên hệ
+	private String handlerPhone; // SĐT cán bộ xử lý (trả về cho Frontend hiển thị)
 
 	public SuggestionResponseDTO() {
 	}
@@ -88,4 +90,10 @@ public class SuggestionResponseDTO {
 	public void setStatus(String status) {
 		this.status = status;
 	}
+
+	public String getContactPhone() { return contactPhone; }
+	public void setContactPhone(String contactPhone) { this.contactPhone = contactPhone; }
+
+	public String getHandlerPhone() { return handlerPhone; }
+	public void setHandlerPhone(String handlerPhone) { this.handlerPhone = handlerPhone; }
 }

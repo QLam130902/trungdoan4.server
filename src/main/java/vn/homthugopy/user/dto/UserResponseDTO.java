@@ -9,6 +9,7 @@ public class UserResponseDTO {
 	private String rank;
 	private String position;
 	private String role;
+	private String phone;
 	
 	public UserResponseDTO(User user) {
 		this.id = user.getId();
@@ -17,6 +18,7 @@ public class UserResponseDTO {
 		this.rank = user.getRank();
 		this.position = user.getPosition();
 		this.role = user.getRole();
+		this.phone = user.getPhone();
 	}
 	
 	// Getters
@@ -26,4 +28,5 @@ public class UserResponseDTO {
 	public String getRank() { return rank; }
 	public String getPosition() { return position; }
 	public String getRole() { return role; }
+	public String getPhone() { return phone; }
 }

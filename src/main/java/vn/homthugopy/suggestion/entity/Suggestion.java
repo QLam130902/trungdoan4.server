@@ -53,6 +53,9 @@ public class Suggestion {
 	// Cờ đánh dấu đã xóa (soft delete)
 	private boolean isDeleted;
 
+	// Số điện thoại muốn được đơn vị liên lạc (tùy chọn, chỉ dùng khi gửi công khai)
+	private String contactPhone;
+
 	// Constructor
 	public Suggestion() {
 	}
@@ -148,6 +151,14 @@ public class Suggestion {
 
 	public void setDeleted(boolean isDeleted) {
 		this.isDeleted = isDeleted;
+	}
+
+	public String getContactPhone() {
+		return contactPhone;
+	}
+
+	public void setContactPhone(String contactPhone) {
+		this.contactPhone = contactPhone;
 	}
 
 }

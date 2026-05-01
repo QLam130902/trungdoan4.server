@@ -7,6 +7,7 @@ public class UserRequestDTO {
 	private String rank;
 	private String position;
 	private String role; // ROLE_ADMIN, ROLE_OFFICER
+	private String phone; // Số điện thoại
 	
 	// Getters and Setters
 	public String getUsername() { return username; }
@@ -21,4 +22,6 @@ public class UserRequestDTO {
 	public void setPosition(String position) { this.position = position; }
 	public String getRole() { return role; }
 	public void setRole(String role) { this.role = role; }
+	public String getPhone() { return phone; }
+	public void setPhone(String phone) { this.phone = phone; }
 }
