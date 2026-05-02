@@ -55,6 +55,14 @@ public class SecurityConfig {
 			.sessionManagement(session -> session
 				.sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Không lưu Session trên server
 			)
+			.exceptionHandling(exception -> exception
+				.authenticationEntryPoint((request, response, authException) -> {
+					response.setStatus(org.springframework.http.HttpStatus.UNAUTHORIZED.value());
+					response.setContentType("application/json");
+					response.setCharacterEncoding("UTF-8");
+					response.getWriter().write("{\"error\": \"Unauthorized\", \"message\": \"Phiên đăng nhập đã hết hạn hoặc không hợp lệ\"}");
+				})
+			)
 			.authenticationProvider(authenticationProvider())
 			.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 

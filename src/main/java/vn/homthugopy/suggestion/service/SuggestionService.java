@@ -3,14 +3,20 @@ package vn.homthugopy.suggestion.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import vn.homthugopy.suggestion.dto.ReplyRequestDTO;
+import vn.homthugopy.suggestion.dto.StatsDTO;
 import vn.homthugopy.suggestion.dto.SuggestionRequestDTO;
 import vn.homthugopy.suggestion.dto.SuggestionResponseDTO;
 import vn.homthugopy.suggestion.entity.Suggestion;
@@ -70,6 +76,52 @@ public class SuggestionService {
 	// Lấy tất cả (chỉ lấy những cái chưa xóa, sắp xếp mới nhất lên đầu)
 	public List<SuggestionResponseDTO> getAllSuggestions() {
 		return this.suggestionRepository.findByIsDeletedFalseOrderBySuggestAtDesc().stream()
+				.map(this::mapToDTO)
+				.collect(Collectors.toList());
+	}
+
+	// === MỚI: Phân trang + lọc ===
+	public Page<SuggestionResponseDTO> getPagedSuggestions(int page, int size, String status,
+			LocalDateTime from, LocalDateTime to) {
+		Pageable pageable = PageRequest.of(page, size);
+		String filterStatus = "ALL".equals(status) ? null : status;
+		Page<Suggestion> pagedEntities = this.suggestionRepository.findPagedFiltered(filterStatus, from, to, pageable);
+		return pagedEntities.map(this::mapToDTO);
+	}
+
+	// === MỚI: Thống kê cho Dashboard ===
+	public StatsDTO getStats(LocalDateTime from, LocalDateTime to) {
+		List<Suggestion> allInRange = this.suggestionRepository.findByDateRange(from, to);
+		
+		long totalCount = allInRange.size();
+		long resolvedCount = allInRange.stream().filter(s -> "RESOLVED".equals(s.getStatus())).count();
+		long pendingCount = allInRange.stream().filter(s -> "PENDING".equals(s.getStatus())).count();
+
+		// Tạo breakdown theo ngày — gom nhóm theo ngày
+		Map<String, long[]> dailyMap = new LinkedHashMap<>();
+		DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		
+		for (Suggestion s : allInRange) {
+			String dateKey = s.getSuggestAt().format(fmt);
+			dailyMap.computeIfAbsent(dateKey, k -> new long[]{0, 0});
+			long[] counts = dailyMap.get(dateKey);
+			counts[0]++; // total
+			if ("RESOLVED".equals(s.getStatus())) {
+				counts[1]++; // resolved
+			}
+		}
+
+		List<StatsDTO.DailyCount> dailyBreakdown = new ArrayList<>();
+		for (Map.Entry<String, long[]> entry : dailyMap.entrySet()) {
+			dailyBreakdown.add(new StatsDTO.DailyCount(entry.getKey(), entry.getValue()[0], entry.getValue()[1]));
+		}
+
+		return new StatsDTO(totalCount, resolvedCount, pendingCount, dailyBreakdown);
+	}
+
+	// === MỚI: Lấy dữ liệu xuất Excel (toàn bộ, không phân trang) ===
+	public List<SuggestionResponseDTO> getExportData(LocalDateTime from, LocalDateTime to) {
+		return this.suggestionRepository.findByDateRange(from, to).stream()
 				.map(this::mapToDTO)
 				.collect(Collectors.toList());
 	}

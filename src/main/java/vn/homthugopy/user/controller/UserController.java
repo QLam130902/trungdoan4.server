@@ -78,10 +78,17 @@ public class UserController {
 
 	@DeleteMapping("/{id}")
 	public ResponseEntity<?> deleteUser(@PathVariable Long id) {
-		if (!userRepository.existsById(id)) {
-			return ResponseEntity.notFound().build();
-		}
-		userRepository.deleteById(id);
-		return ResponseEntity.ok("Đã xóa cán bộ thành công!");
+		// Lấy thông tin người dùng đang đăng nhập từ SecurityContext
+		String currentUsername = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+		
+		return userRepository.findById(id).map(userToDelete -> {
+			// Kiểm tra nếu người dùng đang xóa chính mình
+			if (userToDelete.getUsername().equals(currentUsername)) {
+				return ResponseEntity.badRequest().body("Bạn không thể tự xóa tài khoản của chính mình!");
+			}
+			
+			userRepository.delete(userToDelete);
+			return ResponseEntity.ok("Đã xóa cán bộ thành công!");
+		}).orElse(ResponseEntity.notFound().build());
 	}
 }

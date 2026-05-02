@@ -1,8 +1,11 @@
 package vn.homthugopy.suggestion.controller;
 
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,10 +13,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import vn.homthugopy.suggestion.dto.ReplyRequestDTO;
+import vn.homthugopy.suggestion.dto.StatsDTO;
 import vn.homthugopy.suggestion.dto.SuggestionRequestDTO;
 import vn.homthugopy.suggestion.dto.SuggestionResponseDTO;
 import vn.homthugopy.suggestion.service.SuggestionService;
@@ -27,11 +32,44 @@ public class SuggestionController {
 		this.suggestionService = suggestionService;
 	}
 
-	// API Lấy danh sách toàn bộ góp ý
+	// API Lấy danh sách toàn bộ góp ý (giữ nguyên tương thích cũ)
 	@GetMapping("/suggestions")
 	public ResponseEntity<List<SuggestionResponseDTO>> getSuggestions() {
 		List<SuggestionResponseDTO> listSuggestion = this.suggestionService.getAllSuggestions();
 		return ResponseEntity.ok().body(listSuggestion);
+	}
+
+	// === MỚI: API Phân trang + Lọc ===
+	@GetMapping("/suggestions/paged")
+	public ResponseEntity<Page<SuggestionResponseDTO>> getPagedSuggestions(
+			@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "10") int size,
+			@RequestParam(defaultValue = "ALL") String status,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to
+	) {
+		Page<SuggestionResponseDTO> result = this.suggestionService.getPagedSuggestions(page, size, status, from, to);
+		return ResponseEntity.ok(result);
+	}
+
+	// === MỚI: API Thống kê cho Dashboard ===
+	@GetMapping("/suggestions/stats")
+	public ResponseEntity<StatsDTO> getStats(
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to
+	) {
+		StatsDTO stats = this.suggestionService.getStats(from, to);
+		return ResponseEntity.ok(stats);
+	}
+
+	// === MỚI: API Xuất dữ liệu (cho Excel) ===
+	@GetMapping("/suggestions/export")
+	public ResponseEntity<List<SuggestionResponseDTO>> getExportData(
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to
+	) {
+		List<SuggestionResponseDTO> data = this.suggestionService.getExportData(from, to);
+		return ResponseEntity.ok(data);
 	}
 
 	// API Lấy chi tiết một góp ý bằng ID
@@ -39,7 +77,6 @@ public class SuggestionController {
 	public ResponseEntity<SuggestionResponseDTO> getSuggestionById(@PathVariable Long id) {
 		SuggestionResponseDTO suggestionData = this.suggestionService.getSuggestionById(id);
 		if (suggestionData == null) {
-			// Sửa lỗi: Nếu không thấy dữ liệu thì trả về mã 404 Not Found
 			return ResponseEntity.notFound().build();
 		}
 		return ResponseEntity.ok().body(suggestionData);
@@ -58,10 +95,8 @@ public class SuggestionController {
 	// API Thêm mới một góp ý
 	@PostMapping("/suggestions")
 	public ResponseEntity<SuggestionResponseDTO> createSuggestion(@RequestBody SuggestionRequestDTO reqDTO) {
-		// Gọi tầng Service để thực hiện thêm vào CSDL và sinh trackingCode
 		SuggestionResponseDTO createdSuggestion = this.suggestionService.createSuggestion(reqDTO);
 		
-		// Trả về mã 201 Created cùng URL chứa ID mới tạo theo chuẩn REST
 		URI location = ServletUriComponentsBuilder.fromCurrentRequest()
 				.path("/{id}")
 				.buildAndExpand(createdSuggestion.getId())
