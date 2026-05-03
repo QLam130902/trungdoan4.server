@@ -90,7 +90,11 @@ public class SecurityConfig {
 	@Bean
 	CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration configuration = new CorsConfiguration();
-		configuration.setAllowedOrigins(Arrays.asList("*"));
+		configuration.setAllowedOrigins(Arrays.asList(
+			"https://trungdoan4.io.vn",          // Domain chính thức (Production)
+			"https://qlam130902.github.io",       // GitHub Pages gốc (dự phòng)
+			"http://localhost:5173"               // Local development
+		));
 		configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 		configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
 		
