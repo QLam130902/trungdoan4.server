@@ -93,7 +93,8 @@ public class SecurityConfig {
 		configuration.setAllowedOrigins(Arrays.asList(
 			"https://trungdoan4.io.vn",          // Domain chính thức (Production)
 			"https://qlam130902.github.io",       // GitHub Pages gốc (dự phòng)
-			"http://localhost:5173"               // Local development
+			"http://localhost:5173",              // Local development
+			"http://192.168.1.236:5173"           // Local network development (Mobile)
 		));
 		configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 		configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
