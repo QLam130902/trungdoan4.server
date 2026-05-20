@@ -91,7 +91,7 @@ public class SecurityConfig {
 	CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration configuration = new CorsConfiguration();
 		configuration.setAllowedOrigins(Arrays.asList(
-			"https://sudoan5.io.vn",             // Domain chính thức mới (Production)
+			"https://trungdoan4.io.vn",             // Domain chính thức mới (Production)
 			"https://qlam130902.github.io",       // GitHub Pages gốc (dự phòng)
 			"http://localhost:5173",              // Local development
 			"http://192.168.1.236:5173"           // Local network development (Mobile)
