@@ -56,6 +56,9 @@ public class Suggestion {
 	// Số điện thoại muốn được đơn vị liên lạc (tùy chọn, chỉ dùng khi gửi công khai)
 	private String contactPhone;
 
+	@Column(name = "unit_code")
+	private String unitCode; // Đơn vị nhận góp ý
+
 	// Constructor
 	public Suggestion() {
 	}
@@ -159,6 +162,14 @@ public class Suggestion {
 
 	public void setContactPhone(String contactPhone) {
 		this.contactPhone = contactPhone;
+	}
+
+	public String getUnitCode() {
+		return unitCode;
+	}
+
+	public void setUnitCode(String unitCode) {
+		this.unitCode = unitCode;
 	}
 
 }

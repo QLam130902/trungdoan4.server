@@ -6,6 +6,7 @@ public class SuggestionRequestDTO {
 	private String suggestedBy;
 	private String handledBy;
 	private String contactPhone; // SĐT người muốn được liên hệ
+	private String unitCode; // Mã đơn vị được gửi góp ý
 
 	public SuggestionRequestDTO() {
 	}
@@ -40,5 +41,13 @@ public class SuggestionRequestDTO {
 
 	public void setContactPhone(String contactPhone) {
 		this.contactPhone = contactPhone;
+	}
+
+	public String getUnitCode() {
+		return unitCode;
+	}
+
+	public void setUnitCode(String unitCode) {
+		this.unitCode = unitCode;
 	}
 }

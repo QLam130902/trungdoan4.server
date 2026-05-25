@@ -15,6 +15,7 @@ public class SuggestionResponseDTO {
 	private String status;
 	private String contactPhone; // SĐT người gửi muốn được liên hệ
 	private String handlerPhone; // SĐT cán bộ xử lý (trả về cho Frontend hiển thị)
+	private String unitCode; // Mã đơn vị nhận góp ý
 
 	public SuggestionResponseDTO() {
 	}
@@ -96,4 +97,7 @@ public class SuggestionResponseDTO {
 
 	public String getHandlerPhone() { return handlerPhone; }
 	public void setHandlerPhone(String handlerPhone) { this.handlerPhone = handlerPhone; }
+
+	public String getUnitCode() { return unitCode; }
+	public void setUnitCode(String unitCode) { this.unitCode = unitCode; }
 }

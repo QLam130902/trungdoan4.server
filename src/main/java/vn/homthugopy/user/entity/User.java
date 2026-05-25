@@ -34,6 +34,9 @@ public class User {
 	@Column(nullable = false)
 	private String role; // ROLE_ADMIN, ROLE_OFFICER
 
+	@Column(name = "unit_code")
+	private String unitCode; // Mã đơn vị công tác
+
 	public User() {
 	}
 
@@ -99,6 +102,14 @@ public class User {
 
 	public void setPhone(String phone) {
 		this.phone = phone;
+	}
+
+	public String getUnitCode() {
+		return unitCode;
+	}
+
+	public void setUnitCode(String unitCode) {
+		this.unitCode = unitCode;
 	}
 
 }

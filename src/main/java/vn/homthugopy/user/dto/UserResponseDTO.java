@@ -10,6 +10,7 @@ public class UserResponseDTO {
 	private String position;
 	private String role;
 	private String phone;
+	private String unitCode;
 	
 	public UserResponseDTO(User user) {
 		this.id = user.getId();
@@ -19,6 +20,7 @@ public class UserResponseDTO {
 		this.position = user.getPosition();
 		this.role = user.getRole();
 		this.phone = user.getPhone();
+		this.unitCode = user.getUnitCode();
 	}
 	
 	// Getters
@@ -29,4 +31,5 @@ public class UserResponseDTO {
 	public String getPosition() { return position; }
 	public String getRole() { return role; }
 	public String getPhone() { return phone; }
+	public String getUnitCode() { return unitCode; }
 }
