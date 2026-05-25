@@ -42,16 +42,18 @@ public class AuthController {
 			);
 			
 			UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
-			String token = jwtService.generateToken(userDetails);
 			
 			// Lấy thông tin user để trả về Frontend
 			User user = userRepository.findByUsername(request.getUsername()).get();
+
+			String token = jwtService.generateToken(userDetails, user.getUnitCode());
 			
 			AuthResponseDTO response = new AuthResponseDTO(
 					token, 
 					user.getUsername(), 
 					user.getFullName(), 
-					user.getRole()
+					user.getRole(),
+					user.getUnitCode()
 			);
 			
 			return ResponseEntity.ok(response);

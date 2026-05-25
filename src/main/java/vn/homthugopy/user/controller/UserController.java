@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import vn.homthugopy.unit.repository.UnitRepository;
 import vn.homthugopy.user.dto.UserRequestDTO;
 import vn.homthugopy.user.dto.UserResponseDTO;
 import vn.homthugopy.user.entity.User;
@@ -25,10 +26,12 @@ public class UserController {
 
 	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
+	private final UnitRepository unitRepository;
 
-	public UserController(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+	public UserController(UserRepository userRepository, PasswordEncoder passwordEncoder, UnitRepository unitRepository) {
 		this.userRepository = userRepository;
 		this.passwordEncoder = passwordEncoder;
+		this.unitRepository = unitRepository;
 	}
 
 	@GetMapping
@@ -45,6 +48,10 @@ public class UserController {
 			return ResponseEntity.badRequest().body("Tài khoản đã tồn tại!");
 		}
 
+		if (request.getUnitCode() != null && !unitRepository.existsById(request.getUnitCode())) {
+			return ResponseEntity.badRequest().body("Đơn vị công tác không tồn tại trên hệ thống!");
+		}
+
 		User user = new User();
 		user.setUsername(request.getUsername());
 		user.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -53,6 +60,7 @@ public class UserController {
 		user.setPosition(request.getPosition());
 		user.setRole(request.getRole());
 		user.setPhone(request.getPhone()); // Số điện thoại liên hệ
+		user.setUnitCode(request.getUnitCode());
 
 		User savedUser = userRepository.save(user);
 		return ResponseEntity.ok(new UserResponseDTO(savedUser));
@@ -60,6 +68,10 @@ public class UserController {
 
 	@PutMapping("/{id}")
 	public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UserRequestDTO request) {
+		if (request.getUnitCode() != null && !unitRepository.existsById(request.getUnitCode())) {
+			return ResponseEntity.badRequest().body("Đơn vị công tác không tồn tại trên hệ thống!");
+		}
+
 		return userRepository.findById(id).map(user -> {
 			// Chỉ đổi mật khẩu nếu có gửi mật khẩu mới
 			if (request.getPassword() != null && !request.getPassword().isEmpty()) {
@@ -70,6 +82,7 @@ public class UserController {
 			user.setPosition(request.getPosition());
 			user.setRole(request.getRole());
 			user.setPhone(request.getPhone());
+			user.setUnitCode(request.getUnitCode());
 			
 			User updatedUser = userRepository.save(user);
 			return ResponseEntity.ok(new UserResponseDTO(updatedUser));

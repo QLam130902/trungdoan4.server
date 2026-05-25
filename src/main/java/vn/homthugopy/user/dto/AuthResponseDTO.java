@@ -5,12 +5,14 @@ public class AuthResponseDTO {
 	private String username;
 	private String fullName;
 	private String role;
+	private String unitCode;
 	
-	public AuthResponseDTO(String token, String username, String fullName, String role) {
+	public AuthResponseDTO(String token, String username, String fullName, String role, String unitCode) {
 		this.token = token;
 		this.username = username;
 		this.fullName = fullName;
 		this.role = role;
+		this.unitCode = unitCode;
 	}
 	
 	public String getToken() {
@@ -36,5 +38,11 @@ public class AuthResponseDTO {
 	}
 	public void setRole(String role) {
 		this.role = role;
+	}
+	public String getUnitCode() {
+		return unitCode;
+	}
+	public void setUnitCode(String unitCode) {
+		this.unitCode = unitCode;
 	}
 }

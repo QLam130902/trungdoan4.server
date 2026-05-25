@@ -21,9 +21,12 @@ public class JwtService {
 	private static final long EXPIRATION_TIME = 300000;
 
 	// Tạo Token từ thông tin User
-	public String generateToken(UserDetails userDetails) {
+	public String generateToken(UserDetails userDetails, String unitCode) {
+		String role = userDetails.getAuthorities().isEmpty() ? "" : userDetails.getAuthorities().iterator().next().getAuthority();
 		return JWT.create()
 				.withSubject(userDetails.getUsername())
+				.withClaim("unitCode", unitCode)
+				.withClaim("role", role)
 				.withIssuedAt(new Date(System.currentTimeMillis()))
 				.withExpiresAt(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
 				.sign(Algorithm.HMAC256(secretKey));

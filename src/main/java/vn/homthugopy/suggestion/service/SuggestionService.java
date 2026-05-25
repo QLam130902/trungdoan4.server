@@ -21,6 +21,8 @@ import vn.homthugopy.suggestion.dto.SuggestionRequestDTO;
 import vn.homthugopy.suggestion.dto.SuggestionResponseDTO;
 import vn.homthugopy.suggestion.entity.Suggestion;
 import vn.homthugopy.suggestion.repository.SuggestionRepository;
+import vn.homthugopy.unit.entity.Unit;
+import vn.homthugopy.unit.repository.UnitRepository;
 import vn.homthugopy.user.entity.User;
 import vn.homthugopy.user.repository.UserRepository;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -30,10 +32,35 @@ public class SuggestionService {
 
 	private final SuggestionRepository suggestionRepository;
 	private final UserRepository userRepository;
+	private final UnitRepository unitRepository;
 
-	public SuggestionService(SuggestionRepository suggestionRepository, UserRepository userRepository) {
+	public SuggestionService(SuggestionRepository suggestionRepository, UserRepository userRepository, UnitRepository unitRepository) {
 		this.suggestionRepository = suggestionRepository;
 		this.userRepository = userRepository;
+		this.unitRepository = unitRepository;
+	}
+
+	// Lấy danh sách mã đơn vị được phép xem
+	private List<String> getAccessibleUnitCodes(User user) {
+		if (user == null) {
+			return List.of();
+		}
+		// Admin cấp Trung đoàn xem được tất cả
+		if ("ROLE_ADMIN".equals(user.getRole()) || "TRUNG_DOAN_4".equals(user.getUnitCode())) {
+			return null;
+		}
+
+		List<String> codes = new ArrayList<>();
+		codes.add(user.getUnitCode());
+
+		// Nếu là cán bộ Tiểu đoàn, lấy thêm tất cả các Đại đội trực thuộc
+		if (user.getUnitCode() != null && user.getUnitCode().startsWith("TD")) {
+			List<Unit> childUnits = unitRepository.findByParentCode(user.getUnitCode());
+			for (Unit child : childUnits) {
+				codes.add(child.getCode());
+			}
+		}
+		return codes;
 	}
 
 	// Chuyển Entity sang DTO
@@ -49,6 +76,7 @@ public class SuggestionService {
 		dto.setHandledAt(entity.getHandledAt());
 		dto.setStatus(entity.getStatus());
 		dto.setContactPhone(entity.getContactPhone());
+		dto.setUnitCode(entity.getUnitCode());
 
 		// Tra cứu SĐT cán bộ xử lý nếu đã có người xử lý
 		if (entity.getHandlerId() != null) {
@@ -85,13 +113,22 @@ public class SuggestionService {
 			LocalDateTime from, LocalDateTime to) {
 		Pageable pageable = PageRequest.of(page, size);
 		String filterStatus = "ALL".equals(status) ? null : status;
-		Page<Suggestion> pagedEntities = this.suggestionRepository.findPagedFiltered(filterStatus, from, to, pageable);
+
+		String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+		User user = userRepository.findByUsername(currentUsername).orElse(null);
+		List<String> unitCodes = getAccessibleUnitCodes(user);
+
+		Page<Suggestion> pagedEntities = this.suggestionRepository.findPagedFiltered(filterStatus, from, to, unitCodes, pageable);
 		return pagedEntities.map(this::mapToDTO);
 	}
 
 	// === MỚI: Thống kê cho Dashboard ===
 	public StatsDTO getStats(LocalDateTime from, LocalDateTime to) {
-		List<Suggestion> allInRange = this.suggestionRepository.findByDateRange(from, to);
+		String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+		User user = userRepository.findByUsername(currentUsername).orElse(null);
+		List<String> unitCodes = getAccessibleUnitCodes(user);
+
+		List<Suggestion> allInRange = this.suggestionRepository.findByDateRange(from, to, unitCodes);
 		
 		long totalCount = allInRange.size();
 		long resolvedCount = allInRange.stream().filter(s -> "RESOLVED".equals(s.getStatus())).count();
@@ -121,7 +158,11 @@ public class SuggestionService {
 
 	// === MỚI: Lấy dữ liệu xuất Excel (toàn bộ, không phân trang) ===
 	public List<SuggestionResponseDTO> getExportData(LocalDateTime from, LocalDateTime to) {
-		return this.suggestionRepository.findByDateRange(from, to).stream()
+		String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+		User user = userRepository.findByUsername(currentUsername).orElse(null);
+		List<String> unitCodes = getAccessibleUnitCodes(user);
+
+		return this.suggestionRepository.findByDateRange(from, to, unitCodes).stream()
 				.map(this::mapToDTO)
 				.collect(Collectors.toList());
 	}
@@ -132,6 +173,7 @@ public class SuggestionService {
 		newSuggestion.setBody(requestDTO.getBody());
 		newSuggestion.setSuggestedBy(requestDTO.getSuggestedBy());
 		newSuggestion.setHandledBy(requestDTO.getHandledBy());
+		newSuggestion.setUnitCode(requestDTO.getUnitCode());
 		
 		// Khởi tạo các giá trị mặc định cho luồng xử lí
 		newSuggestion.setSuggestAt(LocalDateTime.now());
