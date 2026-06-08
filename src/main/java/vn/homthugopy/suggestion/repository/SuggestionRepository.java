@@ -21,14 +21,27 @@ public interface SuggestionRepository extends JpaRepository<Suggestion, Long> {
 	// Đếm số lượng góp ý được tạo ra sau một mốc thời gian (dùng để đếm theo ngày)
 	long countBySuggestAtAfter(LocalDateTime date);
 
-	// Phân trang + lọc theo trạng thái + khoảng thời gian + danh sách đơn vị
+	// Phân trang + lọc theo trạng thái + khoảng thời gian (XEM TẤT CẢ đơn vị — dùng cho Admin)
 	@Query("SELECT s FROM Suggestion s WHERE s.isDeleted = false " +
 	       "AND (:status IS NULL OR s.status = :status) " +
 	       "AND (:from IS NULL OR s.suggestAt >= :from) " +
 	       "AND (:to IS NULL OR s.suggestAt <= :to) " +
-	       "AND (:unitCodes IS NULL OR s.unitCode IN :unitCodes) " +
 	       "ORDER BY s.suggestAt DESC")
-	Page<Suggestion> findPagedFiltered(
+	Page<Suggestion> findPagedFilteredAll(
+		@Param("status") String status,
+		@Param("from") LocalDateTime from,
+		@Param("to") LocalDateTime to,
+		Pageable pageable
+	);
+
+	// Phân trang + lọc theo trạng thái + khoảng thời gian + danh sách đơn vị (cho Officer)
+	@Query("SELECT s FROM Suggestion s WHERE s.isDeleted = false " +
+	       "AND (:status IS NULL OR s.status = :status) " +
+	       "AND (:from IS NULL OR s.suggestAt >= :from) " +
+	       "AND (:to IS NULL OR s.suggestAt <= :to) " +
+	       "AND s.unitCode IN :unitCodes " +
+	       "ORDER BY s.suggestAt DESC")
+	Page<Suggestion> findPagedFilteredByUnits(
 		@Param("status") String status,
 		@Param("from") LocalDateTime from,
 		@Param("to") LocalDateTime to,
@@ -36,13 +49,23 @@ public interface SuggestionRepository extends JpaRepository<Suggestion, Long> {
 		Pageable pageable
 	);
 
-	// Lấy danh sách đầy đủ (không phân trang) theo khoảng thời gian và đơn vị — dùng cho xuất Excel và thống kê
+	// Lấy danh sách đầy đủ (không phân trang) theo khoảng thời gian (XEM TẤT CẢ — dùng cho Admin)
 	@Query("SELECT s FROM Suggestion s WHERE s.isDeleted = false " +
 	       "AND (:from IS NULL OR s.suggestAt >= :from) " +
 	       "AND (:to IS NULL OR s.suggestAt <= :to) " +
-	       "AND (:unitCodes IS NULL OR s.unitCode IN :unitCodes) " +
 	       "ORDER BY s.suggestAt ASC")
-	List<Suggestion> findByDateRange(
+	List<Suggestion> findByDateRangeAll(
+		@Param("from") LocalDateTime from,
+		@Param("to") LocalDateTime to
+	);
+
+	// Lấy danh sách đầy đủ (không phân trang) theo khoảng thời gian + đơn vị (cho Officer)
+	@Query("SELECT s FROM Suggestion s WHERE s.isDeleted = false " +
+	       "AND (:from IS NULL OR s.suggestAt >= :from) " +
+	       "AND (:to IS NULL OR s.suggestAt <= :to) " +
+	       "AND s.unitCode IN :unitCodes " +
+	       "ORDER BY s.suggestAt ASC")
+	List<Suggestion> findByDateRangeByUnits(
 		@Param("from") LocalDateTime from,
 		@Param("to") LocalDateTime to,
 		@Param("unitCodes") List<String> unitCodes

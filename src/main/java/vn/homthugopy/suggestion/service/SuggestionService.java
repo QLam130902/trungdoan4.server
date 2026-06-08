@@ -118,7 +118,14 @@ public class SuggestionService {
 		User user = userRepository.findByUsername(currentUsername).orElse(null);
 		List<String> unitCodes = getAccessibleUnitCodes(user);
 
-		Page<Suggestion> pagedEntities = this.suggestionRepository.findPagedFiltered(filterStatus, from, to, unitCodes, pageable);
+		Page<Suggestion> pagedEntities;
+		if (unitCodes == null) {
+			// Admin: xem tất cả đơn vị
+			pagedEntities = this.suggestionRepository.findPagedFilteredAll(filterStatus, from, to, pageable);
+		} else {
+			// Officer: chỉ xem đơn vị được phân quyền
+			pagedEntities = this.suggestionRepository.findPagedFilteredByUnits(filterStatus, from, to, unitCodes, pageable);
+		}
 		return pagedEntities.map(this::mapToDTO);
 	}
 
@@ -128,7 +135,12 @@ public class SuggestionService {
 		User user = userRepository.findByUsername(currentUsername).orElse(null);
 		List<String> unitCodes = getAccessibleUnitCodes(user);
 
-		List<Suggestion> allInRange = this.suggestionRepository.findByDateRange(from, to, unitCodes);
+		List<Suggestion> allInRange;
+		if (unitCodes == null) {
+			allInRange = this.suggestionRepository.findByDateRangeAll(from, to);
+		} else {
+			allInRange = this.suggestionRepository.findByDateRangeByUnits(from, to, unitCodes);
+		}
 		
 		long totalCount = allInRange.size();
 		long resolvedCount = allInRange.stream().filter(s -> "RESOLVED".equals(s.getStatus())).count();
@@ -162,7 +174,13 @@ public class SuggestionService {
 		User user = userRepository.findByUsername(currentUsername).orElse(null);
 		List<String> unitCodes = getAccessibleUnitCodes(user);
 
-		return this.suggestionRepository.findByDateRange(from, to, unitCodes).stream()
+		List<Suggestion> suggestions;
+		if (unitCodes == null) {
+			suggestions = this.suggestionRepository.findByDateRangeAll(from, to);
+		} else {
+			suggestions = this.suggestionRepository.findByDateRangeByUnits(from, to, unitCodes);
+		}
+		return suggestions.stream()
 				.map(this::mapToDTO)
 				.collect(Collectors.toList());
 	}
