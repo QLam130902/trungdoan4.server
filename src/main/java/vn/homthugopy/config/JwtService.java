@@ -17,15 +17,16 @@ public class JwtService {
 	@Value("${jwt.secret:MySuperSecretKeyForTrungDoan4!@#}")
 	private String secretKey;
 
-	// Thời gian sống của token: 5 phút
-	private static final long EXPIRATION_TIME = 300000;
+	// Thời gian sống của token: Mặc định 24 giờ (86400000 ms) để phiên làm việc ổn định khi kiểm tra và thi cử
+	@Value("${jwt.expiration:86400000}")
+	private long expirationTime;
 
 	// Tạo Token từ thông tin User
 	public String generateToken(UserDetails userDetails) {
 		return JWT.create()
 				.withSubject(userDetails.getUsername())
 				.withIssuedAt(new Date(System.currentTimeMillis()))
-				.withExpiresAt(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+				.withExpiresAt(new Date(System.currentTimeMillis() + expirationTime))
 				.sign(Algorithm.HMAC256(secretKey));
 	}
 
