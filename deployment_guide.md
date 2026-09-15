@@ -13,13 +13,13 @@ NGƯỜI DÙNG (Điện thoại / Máy tính)
 ┌─────────────────────────────────────────────────────────────┐
 │         DNS: sudoan5.io.vn                                  │
 │  A record (@)   → GitHub Pages (tự động)                   │
-│  A record (api) → 160.187.229.25   (VPS)                   │
+│  A record (api) → 42.96.2.68   (VPS)                   │
 └──────────────┬──────────────────────────┬───────────────────┘
                │                          │
                ▼                          ▼
   ┌────────────────────┐     ┌────────────────────────────┐
   │  FRONTEND          │     │  BACKEND (VPS Ubuntu 22.04)│
-  │  GitHub Pages      │     │  IP: 160.187.229.25        │
+  │  GitHub Pages      │     │  IP: 42.96.2.68        │
   │  sudoan5.io.vn     │────▶│  api.sudoan5.io.vn         │
   │  (React + Vite)    │     │  Nginx → cổng 8080         │
   └────────────────────┘     │  Spring Boot 3.4 (Java)    │
@@ -110,14 +110,14 @@ git push origin local
 **Bước 3: Copy file JAR lên VPS**
 ```bash
 # Chạy tại CMD Windows MỚI (KHÔNG phải trong VPS)
-scp C:\Users\PC\projects\trungdoan4.server\target\todo-0.0.1-SNAPSHOT.jar root@160.187.229.25:/root/
+scp C:\Users\PC\projects\trungdoan4.server\target\todo-0.0.1-SNAPSHOT.jar root@42.96.2.68:/root/
 ```
-> Nếu SCP lỗi: Dùng **WinSCP** (winscp.net) — Host `160.187.229.25`, User `root`, kéo thả file JAR vào `/root/`
+> Nếu SCP lỗi: Dùng **WinSCP** (winscp.net) — Host `42.96.2.68`, User `root`, kéo thả file JAR vào `/root/`
 
 **Bước 4: Khởi động lại service trên VPS**
 ```bash
 # SSH vào VPS từ CMD Windows
-ssh root@160.187.229.25
+ssh root@42.96.2.68
 
 # Sau khi vào VPS:
 systemctl restart todoapp
@@ -138,7 +138,7 @@ curl -s https://api.sudoan5.io.vn/suggestions/lookup/test
 | Thông số | Giá trị |
 |---|---|
 | Hệ điều hành | Ubuntu 22.04 LTS |
-| IP Public | `160.187.229.25` |
+| IP Public | `42.96.2.68` |
 | Vị trí file JAR | `/root/todo-0.0.1-SNAPSHOT.jar` |
 | Java | `/usr/bin/java` |
 | Database | MySQL 8, port 3306, DB: `db_homthugopy` |
@@ -234,15 +234,15 @@ Tạo các DNS records cho tên miền mới:
 
 | Loại | Tên | Giá trị | Mục đích |
 |---|---|---|---|
-| `A` | `@` (hoặc tên miền gốc) | `160.187.229.25` | Trỏ về VPS (cho API) |
-| `A` | `api` | `160.187.229.25` | Subdomain API |
+| `A` | `@` (hoặc tên miền gốc) | `42.96.2.68` | Trỏ về VPS (cho API) |
+| `A` | `api` | `42.96.2.68` | Subdomain API |
 | `CNAME` | `www` | `tenmien.io.vn` | Alias www |
 
 Kiểm tra DNS đã thông:
 ```bash
 nslookup sudoan5.io.vn
 nslookup api.sudoan5.io.vn
-# Kết quả phải trả về: Address: 160.187.229.25
+# Kết quả phải trả về: Address: 42.96.2.68
 ```
 > DNS thường thông trong 5–30 phút, tối đa 24 giờ.
 
@@ -290,7 +290,7 @@ git push origin local
 
 ### Bước 5 — Cấu hình Nginx trên VPS
 
-SSH vào VPS: `ssh root@160.187.229.25`
+SSH vào VPS: `ssh root@42.96.2.68`
 
 Tạo file cấu hình Nginx mới:
 ```bash
@@ -333,7 +333,7 @@ Certbot sẽ tự cấu hình HTTPS và gia hạn tự động.
 .\mvnw clean package -DskipTests
 
 # Upload (terminal Windows mới, KHÔNG phải SSH):
-scp C:\Users\PC\projects\trungdoan4.server\target\todo-0.0.1-SNAPSHOT.jar root@160.187.229.25:/root/
+scp C:\Users\PC\projects\trungdoan4.server\target\todo-0.0.1-SNAPSHOT.jar root@42.96.2.68:/root/
 
 # Trên VPS:
 systemctl restart todoapp
@@ -355,8 +355,8 @@ curl -s https://api.tenmien-moi.io.vn/suggestions
 
 | Loại | Host | Giá trị | Mục đích |
 |---|---|---|---|
-| **A** | `api` | `160.187.229.25` | Backend API → VPS |
-| **A** | `@` | `160.187.229.25` | Frontend (nếu không dùng GitHub Pages redirect) |
+| **A** | `api` | `42.96.2.68` | Backend API → VPS |
+| **A** | `@` | `42.96.2.68` | Frontend (nếu không dùng GitHub Pages redirect) |
 | **CNAME** | `www` | `tenmien.io.vn` | Alias www |
 
 > DNS thay đổi cần 15 phút đến vài tiếng để có hiệu lực toàn cầu.
@@ -409,7 +409,7 @@ nginx -t && systemctl reload nginx
 **Nguyên nhân:** Chạy lệnh SCP từ bên trong VPS  
 **Khắc phục:** Mở CMD mới trên Windows (không phải cửa sổ SSH):
 ```bash
-scp C:\Users\PC\projects\trungdoan4.server\target\todo-0.0.1-SNAPSHOT.jar root@160.187.229.25:/root/
+scp C:\Users\PC\projects\trungdoan4.server\target\todo-0.0.1-SNAPSHOT.jar root@42.96.2.68:/root/
 ```
 
 ### ❌ Lỗi 7: GitHub Pages HTTPS "Not yet available"
@@ -449,10 +449,10 @@ curl -s https://api.sudoan5.io.vn/suggestions | head -c 100
 
 **Phương pháp 1: SSH từ CMD Windows**
 ```bash
-ssh root@160.187.229.25
+ssh root@42.96.2.68
 ```
 
-**Phương pháp 2: WinSCP** — Host `160.187.229.25`, User `root`, Protocol SFTP  
+**Phương pháp 2: WinSCP** — Host `42.96.2.68`, User `root`, Protocol SFTP  
 *(Dùng để kéo thả file JAR lên VPS khi SCP gặp lỗi)*
 
 **Phương pháp 3: Console VPS** — Đăng nhập trang quản lý nhà cung cấp → mục Console / VNC
