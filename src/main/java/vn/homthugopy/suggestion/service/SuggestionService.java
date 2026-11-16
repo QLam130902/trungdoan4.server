@@ -1,5 +1,6 @@
 package vn.homthugopy.suggestion.service;
 
+import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -28,12 +29,29 @@ import org.springframework.security.core.context.SecurityContextHolder;
 @Service
 public class SuggestionService {
 
+	private static final String TRACKING_CODE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+	private static final int TRACKING_CODE_LENGTH = 8;
+	private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+
 	private final SuggestionRepository suggestionRepository;
 	private final UserRepository userRepository;
 
 	public SuggestionService(SuggestionRepository suggestionRepository, UserRepository userRepository) {
 		this.suggestionRepository = suggestionRepository;
 		this.userRepository = userRepository;
+	}
+
+	private String generateUniqueTrackingCode() {
+		String code;
+		do {
+			StringBuilder sb = new StringBuilder(TRACKING_CODE_LENGTH);
+			for (int i = 0; i < TRACKING_CODE_LENGTH; i++) {
+				int idx = SECURE_RANDOM.nextInt(TRACKING_CODE_CHARS.length());
+				sb.append(TRACKING_CODE_CHARS.charAt(idx));
+			}
+			code = sb.toString();
+		} while (this.suggestionRepository.existsByTrackingCodeIgnoreCase(code));
+		return code;
 	}
 
 	// Chuyển Entity sang DTO
@@ -67,9 +85,12 @@ public class SuggestionService {
 		return suggestionOptional.map(this::mapToDTO).orElse(null);
 	}
 
-	// Lấy chi tiết 1 góp ý bằng mã tra cứu (tracking code)
+	// Lấy chi tiết 1 góp ý bằng mã tra cứu (tracking code) - không phân biệt hoa thường
 	public SuggestionResponseDTO getSuggestionByTrackingCode(String trackingCode) {
-		Optional<Suggestion> suggestionOptional = this.suggestionRepository.findByTrackingCode(trackingCode);
+		if (trackingCode == null || trackingCode.isBlank()) {
+			return null;
+		}
+		Optional<Suggestion> suggestionOptional = this.suggestionRepository.findByTrackingCodeIgnoreCase(trackingCode.trim());
 		return suggestionOptional.map(this::mapToDTO).orElse(null);
 	}
 
@@ -144,23 +165,10 @@ public class SuggestionService {
 		
 		// Khởi tạo các giá trị mặc định cho luồng xử lí
 		newSuggestion.setSuggestAt(LocalDateTime.now());
-		newSuggestion.setStatus("PENDING"); // trạng thái ban đầu là Đang chờ xử lý
+		newSuggestion.setStatus("PENDING"); // trạng thái ban đầu là Đã gửi đến đơn vị
 		
-		// Tự động sinh mã tra cứu theo ngày tháng (VD: 280426A)
-		LocalDate today = LocalDate.now();
-		String datePrefix = today.format(DateTimeFormatter.ofPattern("ddMMyy"));
-		long countToday = this.suggestionRepository.countBySuggestAtAfter(today.atStartOfDay());
-		
-		// Chuyển đổi countToday thành chữ cái (0 -> A, 25 -> Z, 26 -> AA...)
-		String suffix = "";
-		long num = countToday;
-		do {
-			long remainder = num % 26;
-			suffix = (char) ('A' + remainder) + suffix;
-			num = (num / 26) - 1;
-		} while (num >= 0);
-		
-		newSuggestion.setTrackingCode(datePrefix + suffix);
+		// Tự động sinh mã tra cứu ngẫu nhiên gồm 8 ký tự chữ hoa và số (VD: K8P4M9X2)
+		newSuggestion.setTrackingCode(generateUniqueTrackingCode());
 		newSuggestion.setContactPhone(requestDTO.getContactPhone()); // Lưu SĐT liên hệ nếu có
 		
 		// Nếu người dùng muốn được liên hệ, tự động gán cán bộ mặc định (tuannvt) để tra cứu SĐT

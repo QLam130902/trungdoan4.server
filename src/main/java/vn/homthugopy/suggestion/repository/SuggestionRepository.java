@@ -16,6 +16,8 @@ import vn.homthugopy.suggestion.entity.Suggestion;
 @Repository
 public interface SuggestionRepository extends JpaRepository<Suggestion, Long> {
 	Optional<Suggestion> findByTrackingCode(String trackingCode);
+	Optional<Suggestion> findByTrackingCodeIgnoreCase(String trackingCode);
+	boolean existsByTrackingCodeIgnoreCase(String trackingCode);
 	List<Suggestion> findByIsDeletedFalseOrderBySuggestAtDesc();
 	
 	// Đếm số lượng góp ý được tạo ra sau một mốc thời gian (dùng để đếm theo ngày)
