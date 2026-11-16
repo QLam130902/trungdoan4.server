@@ -94,8 +94,10 @@ public class SuggestionService {
 		List<Suggestion> allInRange = this.suggestionRepository.findByDateRange(from, to);
 		
 		long totalCount = allInRange.size();
-		long resolvedCount = allInRange.stream().filter(s -> "RESOLVED".equals(s.getStatus())).count();
 		long pendingCount = allInRange.stream().filter(s -> "PENDING".equals(s.getStatus())).count();
+		long receivedCount = allInRange.stream().filter(s -> "RESOLVED".equals(s.getStatus())).count();
+		long completedCount = allInRange.stream().filter(s -> "COMPLETED".equals(s.getStatus())).count();
+		long resolvedCount = receivedCount + completedCount;
 
 		// Tạo breakdown theo ngày — gom nhóm theo ngày
 		Map<String, long[]> dailyMap = new LinkedHashMap<>();
@@ -103,20 +105,27 @@ public class SuggestionService {
 		
 		for (Suggestion s : allInRange) {
 			String dateKey = s.getSuggestAt().format(fmt);
-			dailyMap.computeIfAbsent(dateKey, k -> new long[]{0, 0});
+			dailyMap.computeIfAbsent(dateKey, k -> new long[]{0, 0, 0, 0});
 			long[] counts = dailyMap.get(dateKey);
 			counts[0]++; // total
+			if ("RESOLVED".equals(s.getStatus()) || "COMPLETED".equals(s.getStatus())) {
+				counts[1]++; // resolved (received + completed)
+			}
 			if ("RESOLVED".equals(s.getStatus())) {
-				counts[1]++; // resolved
+				counts[2]++; // received
+			}
+			if ("COMPLETED".equals(s.getStatus())) {
+				counts[3]++; // completed
 			}
 		}
 
 		List<StatsDTO.DailyCount> dailyBreakdown = new ArrayList<>();
 		for (Map.Entry<String, long[]> entry : dailyMap.entrySet()) {
-			dailyBreakdown.add(new StatsDTO.DailyCount(entry.getKey(), entry.getValue()[0], entry.getValue()[1]));
+			long[] v = entry.getValue();
+			dailyBreakdown.add(new StatsDTO.DailyCount(entry.getKey(), v[0], v[1], v[2], v[3]));
 		}
 
-		return new StatsDTO(totalCount, resolvedCount, pendingCount, dailyBreakdown);
+		return new StatsDTO(totalCount, resolvedCount, pendingCount, receivedCount, completedCount, dailyBreakdown);
 	}
 
 	// === MỚI: Lấy dữ liệu xuất Excel (toàn bộ, không phân trang) ===
@@ -169,13 +178,17 @@ public class SuggestionService {
 		return mapToDTO(savedEntity);
 	}
 
-	// Phản hồi góp ý
+	// Phản hồi / Cập nhật trạng thái góp ý
 	public SuggestionResponseDTO replySuggestion(Long id, ReplyRequestDTO reqDTO) {
 		Optional<Suggestion> opt = this.suggestionRepository.findById(id);
 		if (opt.isPresent()) {
 			Suggestion s = opt.get();
 			s.setResponse(reqDTO.getResponse());
-			s.setStatus("RESOLVED");
+			if (reqDTO.getStatus() != null && !reqDTO.getStatus().isBlank()) {
+				s.setStatus(reqDTO.getStatus());
+			} else {
+				s.setStatus("RESOLVED");
+			}
 			s.setHandledAt(LocalDateTime.now());
 			
 			// Lấy thông tin cán bộ đang đăng nhập từ SecurityContext
